@@ -13,8 +13,14 @@ module rv32i_if_stage #(
     logic [31:0] next_pc;
 
     assign pc_plus4 = pc + 32'd4;
-    assign next_pc = redirect ? redirect_target : pc_plus4;
     assign instruction = instruction_in;
+
+    rv32i_pc_mux u_pc_mux (
+        .pc_plus4(pc_plus4),
+        .redirect_target(redirect_target),
+        .redirect(redirect),
+        .next_pc(next_pc)
+    );
 
     rv32i_program_counter #(
         .RESET_ADDRESS(RESET_ADDRESS)

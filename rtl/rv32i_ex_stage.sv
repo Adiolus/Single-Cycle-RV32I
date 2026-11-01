@@ -17,21 +17,32 @@ module rv32i_ex_stage (
 );
     logic [31:0] operand_a;
     logic [31:0] operand_b;
+    logic [31:0] pc_relative_target;
+    logic [31:0] register_target;
+    logic [1:0] operand_a_select;
     logic [3:0] alu_operation;
     logic equal_operands;
     logic signed_less;
     logic unsigned_less;
 
     always_comb begin
-        if (opcode == 7'h37)
-            operand_a = 32'b0;
-        else if (opcode == 7'h17)
-            operand_a = pc;
-        else
-            operand_a = rs1_data;
-
-        operand_b = use_immediate ? immediate : rs2_data;
+        case (opcode)
+            7'h17: operand_a_select = 2'b01;
+            7'h37: operand_a_select = 2'b10;
+            default: operand_a_select = 2'b00;
+        endcase
     end
+
+    rv32i_alu_source_mux u_alu_source_mux (
+        .rs1_data(rs1_data),
+        .pc(pc),
+        .rs2_data(rs2_data),
+        .immediate(immediate),
+        .operand_a_select(operand_a_select),
+        .use_immediate(use_immediate),
+        .operand_a(operand_a),
+        .operand_b(operand_b)
+    );
 
     rv32i_alu_control u_alu_control (
         .opcode(opcode),
@@ -65,11 +76,14 @@ module rv32i_ex_stage (
         end
     end
 
-    always_comb begin
-        redirect = jump || jump_register || (branch && branch_taken);
-        if (jump_register)
-            redirect_target = {alu_result[31:1], 1'b0};
-        else
-            redirect_target = pc + immediate;
-    end
+    assign redirect = jump || jump_register || (branch && branch_taken);
+    assign pc_relative_target = pc + immediate;
+    assign register_target = {alu_result[31:1], 1'b0};
+
+    rv32i_mux_2x1 u_redirect_target_mux (
+        .input_0(pc_relative_target),
+        .input_1(register_target),
+        .select(jump_register),
+        .output_data(redirect_target)
+    );
 endmodule
