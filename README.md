@@ -3,7 +3,6 @@
 **Aditya Chinchore · Electronics and Communication Engineering · PES University**  
 SRN : PES2UG24EC006  
 Section : 5A
-
 Computer Organization and Design
 
 A modular, 32-bit RISC-V datapath written in SystemVerilog. The design combines RV32I integer and control-flow logic with an RV32M multiply/divide unit. The repository includes separate load/store and data-memory modules, plus three self-checking testbenches.
